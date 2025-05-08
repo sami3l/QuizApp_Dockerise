@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: quizapp-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./quizapp-backend
+    container_name: quizapp-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/quizapp
+      - SPRING_DATA_MONGODB_DATABASE=quizapp
+
+  frontend:
+    build: ./quizapp-frontend
+    container_name: quizapp-frontend
+    ports:
+      - "3000:80"  # Vite sera buildé en production, servi avec nginx par exemple
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
